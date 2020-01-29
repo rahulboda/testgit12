@@ -1,4 +1,41 @@
-f
-afaf
-fasafDf
-fthis is my first text rahul
+ata "oci_load_balancer_backend_health" "test_backend_health" {
+    #Required
+    backend_name = "${10.0.0.3:8080}"
+    backend_set_name = "${example_backend_set}"
+    load_balancer_id = "${load oci_load_balancer_backend_health}"
+}
+    
+data "aws_lb" "selected" {
+  name = "default-public"
+}
+
+data "aws_lb_listener" "selected443" {
+  load_balancer_arn = "${data.aws_lb.selected.arn}"
+  port              = 22
+}    
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = "${aws_lb.front_end.arn}"
+  port              = "443"
+  protocol          = "HTTP"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  
+
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.front_end.arn}"
+  }
+
+}
+
+
+resource "aws_lb_target_group" "test" {
+  name     = "tf-example-lb-tg"
+  port     = 80
+  protocol = "HTTPS"
+  vpc_id   = "${aws_vpc.main.id}"
+}
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
